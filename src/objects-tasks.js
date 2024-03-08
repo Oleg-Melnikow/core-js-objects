@@ -374,32 +374,59 @@ function group(array, keySelector, valueSelector) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  selectorValue: '',
+
+  newObject(value, order) {
+    this.validateSelectors(order);
+    const selectorValue = this.selectorValue + value;
+    return { ...this, selectorValue, order };
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return this.newObject(value, 1);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return this.newObject(`#${value}`, 2);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return this.newObject(`.${value}`, 3);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return this.newObject(`[${value}]`, 4);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return this.newObject(`:${value}`, 5);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return this.newObject(`::${value}`, 6);
+  },
+
+  combine(selector1, combinator, selector2) {
+    const combineValue = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this.newObject(combineValue);
+  },
+
+  validateSelectors(order) {
+    const notRepeatSelector = [1, 2, 6];
+    if (this.order > order) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    if (notRepeatSelector.includes(order) && this.order === order) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+  },
+
+  stringify() {
+    return this.selectorValue;
   },
 };
 
